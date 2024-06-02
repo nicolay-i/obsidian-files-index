@@ -81,7 +81,7 @@ export const FilesView = function () {
 				className={'file'}
 				onClick={() => onClickByFile(e)}
 			>
-				{e.name}
+				{e.name.replace('.md', '')}
 			</div>;
 		})}
 	</div>;
