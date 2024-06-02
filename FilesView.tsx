@@ -14,6 +14,20 @@ export const FilesView = function () {
 	const plugin: any = this.app.plugins.plugins['files-index'];
 	const settings: MyPluginSettings = plugin.settings;
 
+	let filesFilter = files
+		.filter(file => folders.length ? file.parent?.name === lastFolder : true)
+		.filter(file => file.name.toLowerCase().includes(search.toLowerCase()));
+
+	filesFilter = filesFilter.sort( (a: TAbstractFile, b: TAbstractFile) => {
+		if (a.name < b.name) {
+			return settings.sortByAsc ? -1 : 1;
+		}
+		if (a.name > b.name) {
+			return settings.sortByAsc ? 1 : -1;
+		}
+		return 0;
+	});
+
 	function onClickByFile(file: TAbstractFile) {
 		this.app.workspace.getLeaf().openFile(file);
 	}
@@ -61,7 +75,7 @@ export const FilesView = function () {
 			placeholder={'Search file by name'}
 		/>}
 
-		{files.filter(file => folders.length ? file.parent?.name === lastFolder : true).filter(file => file.name.toLowerCase().includes(search.toLowerCase())).map((e) => {
+		{filesFilter.map((e) => {
 			return <div
 				key={`file-${e.name}`}
 				className={'file'}

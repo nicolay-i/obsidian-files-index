@@ -5,17 +5,17 @@ import {VIEW_TYPE_EXAMPLE, ObsidianFilesView} from 'ObsidianFilesView'
 // Remember to rename these classes and interfaces!
 
 export interface MyPluginSettings {
-	mySetting: string;
 	showSearch: boolean
 	showFolders: boolean
 	paddingX: string
+	sortByAsc: boolean
 }
 
 const DEFAULT_SETTINGS: MyPluginSettings = {
-	mySetting: 'default',
 	showSearch: true,
 	showFolders: true,
 	paddingX: '10%',
+	sortByAsc: true
 }
 
 export default class MyPlugin extends Plugin {
@@ -130,5 +130,16 @@ class SampleSettingTab extends PluginSettingTab {
 					this.plugin.settings.paddingX = value;
 					await this.plugin.saveSettings();
 				}));
+
+		new Setting(containerEl)
+			.setName('Sort by name asc')
+			.addToggle(async (value) => {
+				value
+					.setValue( this.plugin.settings.sortByAsc )
+					.onChange(async (value) => {
+						this.plugin.settings.sortByAsc = value;
+						await this.plugin.saveSettings();
+					})
+			});
 	}
 }
