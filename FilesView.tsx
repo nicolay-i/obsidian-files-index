@@ -21,7 +21,7 @@ export const FilesView = function () {
 	let filesFilter = files
 		.filter(file => folders.length ? file.parent?.name === lastFolder : true)
 		.filter(file => file.name.toLowerCase().includes(search.toLowerCase()))
-		.map(file => ({...file, name: `${file.name} (${getNumberFromName(file.name)})`}));
+		.map(file => ({...file, name: `${file.name}`}));
 
 	filesFilter = filesFilter.sort((a: TAbstractFile, b: TAbstractFile) => {
 		const nameA = settings.sortWithNumbers ? getNumberFromName(a.name) : a.name;
