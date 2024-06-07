@@ -9,13 +9,15 @@ export interface MyPluginSettings {
 	showFolders: boolean
 	paddingX: string
 	sortByAsc: boolean
+	sortWithNumbers: boolean
 }
 
 const DEFAULT_SETTINGS: MyPluginSettings = {
 	showSearch: true,
 	showFolders: true,
 	paddingX: '10%',
-	sortByAsc: true
+	sortByAsc: true,
+	sortWithNumbers: false,
 }
 
 export default class MyPlugin extends Plugin {
@@ -138,6 +140,17 @@ class SampleSettingTab extends PluginSettingTab {
 					.setValue( this.plugin.settings.sortByAsc )
 					.onChange(async (value) => {
 						this.plugin.settings.sortByAsc = value;
+						await this.plugin.saveSettings();
+					})
+			});
+
+		new Setting(containerEl)
+			.setName('Sort with names as has number prefixes')
+			.addToggle(async (value) => {
+				value
+					.setValue( this.plugin.settings.sortWithNumbers )
+					.onChange(async (value) => {
+						this.plugin.settings.sortWithNumbers = value;
 						await this.plugin.saveSettings();
 					})
 			});
