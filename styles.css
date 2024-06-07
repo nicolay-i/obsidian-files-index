@@ -35,7 +35,7 @@ If your plugin does not need CSS, delete this file.
 }
 
 
-@media screen and (min-width: 768px) {
+@media screen and (min-width: 10248px) {
 	.file:hover {
 		background-color: #eee;
 	}
