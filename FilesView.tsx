@@ -1,11 +1,76 @@
 import {App, TAbstractFile, TFile, TFolder} from "obsidian";
 import {useState} from "react";
 import {MyPluginSettings} from "./main";
+import {MdJsonParserService} from "md-json-parser";
+import markdown, { getCodeString } from '@wcj/markdown-to-html';
+
+const publicPropsName = 'tags'
+const publicPropsVal = 'публичное'
 
 export const FilesView = function () {
 	const app = this.app as App;
 
-	const files: TFile[] = app.vault.getMarkdownFiles()
+
+	function getFiles() {
+		return app.vault.getMarkdownFiles()
+			.filter(file => {
+				const props = app.metadataCache.getFileCache(file)?.frontmatter;
+				const vals = (props ?? {})[publicPropsName]
+
+				return vals === publicPropsVal || [...vals].includes(publicPropsVal)
+			})
+	}
+
+	const files: TFile[] = getFiles();
+
+	async function readAllFiles() {
+		console.log('1')
+		const allFiles = getFiles()
+		const files = [...allFiles]
+			.map(async file => {
+				let content = await app.vault.read(file)
+
+				const regex = /\[\[(.*?)\]\]/gs;
+
+				const matches = content.matchAll(regex);
+				const links = [...matches].map(match => match[1]).map(link => ({
+					path: link.split('|')[0],
+					title: link.split('|')[1] ?? link.split('|')[0],
+					textLink: link,
+				}));
+
+				const linksObj: {[x:string]: string} = {};
+				for (const link of links) {
+					linksObj[link.path] = link.title;
+
+					const fileLink = allFiles.find(file => file.basename === link.path);
+					if (!fileLink) {
+						content = content
+							.replace(`[[${link.textLink}]]`, link.title);
+					} else {
+						content = content
+							.replace(`[[${link.textLink}]]`, `<a href="${fileLink.path}">${link.title}</a>`);
+					}
+				}
+
+				const mdJsonParserService= new MdJsonParserService()
+
+				const {data, body} = mdJsonParserService.parseMarkdown(content)
+
+				const firstLine = body.children?.[0]?.position?.start?.line ?? 0;
+				let html = markdown(content.split('\n').slice(firstLine).join('\n'))
+
+				html = html.toString().split('<hr>').slice(1).join('<hr>');
+
+				return {...file, content, linksObj, data, body, html};
+			})
+
+		return Promise.all(files);
+	}
+
+
+	readAllFiles().then(console.log)
+
 	const [folderRoot, setFolderRoot] = useState<TFolder>(app.vault.getRoot())
 
 	const [search, setSearch] = useState<string>('');
@@ -68,19 +133,21 @@ export const FilesView = function () {
 					setFolderRoot(folderRoot.parent);
 				}
 			}}> &lt; </span> : null}
-			{folderRoot.children.filter(folder => folder instanceof TFolder).map((folder2: TFolder) => {
-				return <span
-					key={`folders-${folder2.name}`}
-					className={lastFolder === folder2.name ? 'folder active' : 'folder'}
-					onClick={() => {
-						if (folder2.name === lastFolder) {
-							setFolders([...folders.slice(0, -1)]);
-						} else {
-							setFolders([...folders, folder2.name]);
-							setFolderRoot(folder2);
-						}
-					}}>{folder2.name}</span>;
-			})}
+
+			{folderRoot.children.filter(folder => folder instanceof TFolder)
+				.map((folder2: TFolder) => {
+					return <span
+						key={`folders-${folder2.name}`}
+						className={lastFolder === folder2.name ? 'folder active' : 'folder'}
+						onClick={() => {
+							if (folder2.name === lastFolder) {
+								setFolders([...folders.slice(0, -1)]);
+							} else {
+								setFolders([...folders, folder2.name]);
+								setFolderRoot(folder2);
+							}
+						}}>{folder2.name}</span>;
+				})}
 		</>}
 
 		{settings.showSearch && <input
