@@ -25,7 +25,6 @@
 	},
 	"dependencies": {
 		"@wcj/markdown-to-html": "^3.0.2",
-		"md-json-parser": "^1.0.5-rc.2",
 		"react": "^18.3.1",
 		"react-dom": "^18.3.1"
 	}

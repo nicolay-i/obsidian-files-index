@@ -1,8 +1,7 @@
 import {App, TAbstractFile, TFile, TFolder} from "obsidian";
 import {useState} from "react";
 import {MyPluginSettings} from "./main";
-import {MdJsonParserService} from "md-json-parser";
-import markdown, { getCodeString } from '@wcj/markdown-to-html';
+import markdown from '@wcj/markdown-to-html';
 
 const publicPropsName = 'tags'
 const publicPropsVal = 'публичное'
@@ -30,8 +29,8 @@ export const FilesView = function () {
 			.map(async file => {
 				let content = await app.vault.read(file)
 
+				// find links
 				const regex = /\[\[(.*?)\]\]/gs;
-
 				const matches = content.matchAll(regex);
 				const links = [...matches].map(match => match[1]).map(link => ({
 					path: link.split('|')[0],
@@ -43,6 +42,7 @@ export const FilesView = function () {
 				for (const link of links) {
 					linksObj[link.path] = link.title;
 
+					// replace link to text view or html
 					const fileLink = allFiles.find(file => file.basename === link.path);
 					if (!fileLink) {
 						content = content
@@ -53,16 +53,11 @@ export const FilesView = function () {
 					}
 				}
 
-				const mdJsonParserService= new MdJsonParserService()
-
-				const {data, body} = mdJsonParserService.parseMarkdown(content)
-
-				const firstLine = body.children?.[0]?.position?.start?.line ?? 0;
-				let html = markdown(content.split('\n').slice(firstLine).join('\n'))
-
+				// convert md to html and hidden frontmatter data
+				let html = markdown(content)
 				html = html.toString().split('<hr>').slice(1).join('<hr>');
 
-				return {...file, content, linksObj, data, body, html};
+				return {...file, content, linksObj, html};
 			})
 
 		return Promise.all(files);
