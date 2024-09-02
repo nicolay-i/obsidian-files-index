@@ -1,10 +1,12 @@
-import {TAbstractFile, TFolder} from "obsidian";
+import {App, TAbstractFile, TFile, TFolder} from "obsidian";
 import {useState} from "react";
 import {MyPluginSettings} from "./main";
 
 export const FilesView = function () {
-	const files: TAbstractFile[] = this.app.vault.getMarkdownFiles()
-	const [folderRoot, setFolderRoot] = useState<TFolder>(this.app.vault.getRoot())
+	const app = this.app as App;
+
+	const files: TFile[] = app.vault.getMarkdownFiles()
+	const [folderRoot, setFolderRoot] = useState<TFolder>(app.vault.getRoot())
 
 	const [search, setSearch] = useState<string>('');
 	const [folders, setFolders] = useState<string[]>([]);
@@ -21,7 +23,7 @@ export const FilesView = function () {
 	let filesFilter = files
 		.filter(file => folders.length ? file.parent?.name === lastFolder : true)
 		.filter(file => file.name.toLowerCase().includes(search.toLowerCase()))
-		.map(file => ({...file, name: `${file.name}`}));
+		.map(file => ({...file, name: `${file.name}`, props: this.app.metadataCache.getFileCache(file)?.frontmatter}));
 
 	filesFilter = filesFilter.sort((a: TAbstractFile, b: TAbstractFile) => {
 		const nameA = settings.sortWithNumbers ? getNumberFromName(a.name) : a.name;
@@ -35,8 +37,8 @@ export const FilesView = function () {
 		return 0;
 	});
 
-	function onClickByFile(file: TAbstractFile) {
-		this.app.workspace.getLeaf().openFile(file);
+	function onClickByFile(file: TFile) {
+		app.workspace.getLeaf().openFile(file);
 	}
 
 	function getValuePadding(val: string) {
@@ -51,6 +53,11 @@ export const FilesView = function () {
 		}
 
 		return `${val}px`;
+	}
+
+	(window as any).FilesIndex = {
+		filesFilter,
+		app,
 	}
 
 	return <div className={'file-list'} style={{padding: `0 ${getValuePadding(settings.paddingX)}`}}>
