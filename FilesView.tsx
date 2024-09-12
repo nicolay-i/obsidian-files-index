@@ -1,6 +1,6 @@
 import {App, FileSystemAdapter, TAbstractFile, TFile, TFolder} from "obsidian";
 import {useEffect, useState} from "react";
-import {MyPluginSettings} from "./main";
+import {MyPluginSettings, pluginName} from "./main";
 import markdown from '@wcj/markdown-to-html';
 
 const publicPropsName = 'tags'
@@ -75,11 +75,11 @@ export const FilesView = function () {
 			})
 
 
-			const configPath = app.vault.configDir + "/plugins/obsidian-files-index/data.json";
+			const configPath = app.vault.configDir + `/plugins/${pluginName}/data.json`;
 			await app.vault.adapter.write(configPath, JSON.stringify(res, null, 2));
 
 			for (let item of data) {
-				const configPath = app.vault.configDir + `/plugins/obsidian-files-index/output/${item.path.replace('.md', '.html')}`;
+				const configPath = app.vault.configDir + `/plugins/${pluginName}/output/${item.path.replace('.md', '.html')}`;
 				const pathToFile = configPath.split('/');
 				pathToFile.pop();
 				const pathToFile2 = pathToFile.join('/');

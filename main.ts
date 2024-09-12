@@ -12,6 +12,8 @@ export interface MyPluginSettings {
 	sortWithNumbers: boolean
 }
 
+export const pluginName = 'obsidian-files-index'
+
 const DEFAULT_SETTINGS: MyPluginSettings = {
 	showSearch: true,
 	showFolders: true,
