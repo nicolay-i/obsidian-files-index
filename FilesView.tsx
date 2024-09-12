@@ -1,5 +1,5 @@
-import {App, TAbstractFile, TFile, TFolder} from "obsidian";
-import {useState} from "react";
+import {App, FileSystemAdapter, TAbstractFile, TFile, TFolder} from "obsidian";
+import {useEffect, useState} from "react";
 import {MyPluginSettings} from "./main";
 import markdown from '@wcj/markdown-to-html';
 
@@ -22,8 +22,7 @@ export const FilesView = function () {
 
 	const files: TFile[] = getFiles();
 
-	async function readAllFiles() {
-		console.log('1')
+	async function prepareAllFiles() {
 		const allFiles = getFiles()
 		const files = [...allFiles]
 			.map(async file => {
@@ -63,8 +62,31 @@ export const FilesView = function () {
 		return Promise.all(files);
 	}
 
+	async function updResultFiles() {
+		try {
+			const data = await prepareAllFiles();
+			const res = data.map(file => {
+				return {
+					path: file.path,
+					content: file.content,
+					linksObj: file.linksObj,
+					html: file.html,
+				}
+			})
 
-	readAllFiles().then(console.log)
+
+			const configPath = app.vault.configDir + "/plugins/obsidian-files-index/data.json";
+			await app.vault.adapter.write(configPath, JSON.stringify(res, null, 2));
+
+		} catch (e) {
+			console.error(e);
+		}
+
+	}
+
+	useEffect(() => {
+		updResultFiles();
+	}, [files]);
 
 	const [folderRoot, setFolderRoot] = useState<TFolder>(app.vault.getRoot())
 

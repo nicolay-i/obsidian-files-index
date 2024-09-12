@@ -26,6 +26,8 @@ export default class MyPlugin extends Plugin {
 	async activateView() {
 		const {workspace} = this.app;
 
+		console.log(this.manifest.id);
+
 		let leaf: WorkspaceLeaf | null = null;
 		const leaves = workspace.getLeavesOfType(VIEW_TYPE_EXAMPLE);
 
