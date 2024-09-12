@@ -78,6 +78,16 @@ export const FilesView = function () {
 			const configPath = app.vault.configDir + "/plugins/obsidian-files-index/data.json";
 			await app.vault.adapter.write(configPath, JSON.stringify(res, null, 2));
 
+			for (let item of data) {
+				const configPath = app.vault.configDir + `/plugins/obsidian-files-index/output/${item.path.replace('.md', '.html')}`;
+				const pathToFile = configPath.split('/');
+				pathToFile.pop();
+				const pathToFile2 = pathToFile.join('/');
+				await app.vault.adapter.mkdir(pathToFile2);
+
+				await app.vault.adapter.write(configPath, item.html);
+			}
+
 		} catch (e) {
 			console.error(e);
 		}
